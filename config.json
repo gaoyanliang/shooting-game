@@ -20,5 +20,8 @@
   },
   "maxBulletNum": 10,
   "bulletInterval": 100,
-  "monsterSpeedFactor": 1
+  "monsterSpeedFactor": 1,
+  "titleFontSize": 36,
+  "fontSize": 24,
+  "smallFontSize": 12
 }
