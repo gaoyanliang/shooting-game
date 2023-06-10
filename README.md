@@ -2,7 +2,7 @@
 
 一款使用 Ebiten 开发的简易射击游戏
 
-![game](./images/game.png#pic_center 100*100)
+![game](./images/game.png)
 
 - ebiten：ebiten 引擎的一些基础用法
 - images：游戏中用到的一些图片
