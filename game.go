@@ -2,9 +2,12 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"image/color"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,6 +27,7 @@ type Game struct {
 	cfg       *Config
 	failCount int // 被外星人碰撞和移出屏幕的外星人数量之和
 	overMsg   string
+	score     int // 击杀怪物数量
 }
 
 func (g *Game) init() {
@@ -31,6 +35,7 @@ func (g *Game) init() {
 	g.CreateFonts()
 	g.failCount = 0
 	g.overMsg = ""
+	g.score = 0
 }
 
 func NewGame() *Game {
@@ -110,6 +115,7 @@ func (g *Game) CheckCollision() {
 		for bullet := range g.bullets {
 			if CheckCollision(monster, bullet) {
 				log.Print("---- 子弹击中怪物 ----")
+				g.score++
 				delete(g.monsters, monster)
 				delete(g.bullets, bullet)
 			}
@@ -217,6 +223,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for monter := range g.monsters {
 			monter.Draw(screen)
 		}
+
+		scoreStr := strings.Builder{}
+		scoreStr.WriteString("scores: ")
+		scoreStr.WriteString(strconv.Itoa(g.score))
+		// print the score
+		ebitenutil.DebugPrintAt(screen, scoreStr.String(), 0, g.cfg.ScreenHeight-20)
+
 	case ModeOver:
 		texts = []string{"", g.overMsg}
 	}
