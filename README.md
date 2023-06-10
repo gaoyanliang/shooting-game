@@ -53,4 +53,4 @@ go build -o shooting-game *.go
 ## 配套教程
 
 - [Ebitengine - 一款Go语言编写的2D游戏引擎](https://yanliang.cool/blog/go/ebitengine/)
-- [用 Ebitengine 制作一款简易射击游戏](https://yanliang.cool/blog/go/shooting-game/)
+- [用 Ebitengine 制作一款简易射击游戏](https://yanliang.cool/blog/go/shooting-games/)
