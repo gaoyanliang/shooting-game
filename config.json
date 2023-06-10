@@ -23,5 +23,6 @@
   "monsterSpeedFactor": 1,
   "titleFontSize": 36,
   "fontSize": 24,
-  "smallFontSize": 12
+  "smallFontSize": 12,
+  "failCount": 10
 }

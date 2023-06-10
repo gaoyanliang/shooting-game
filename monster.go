@@ -7,11 +7,8 @@ import (
 )
 
 type Monster struct {
+	GameObject
 	image       *ebiten.Image
-	width       int
-	height      int
-	x           float64
-	y           float64
 	speedFactor float64
 }
 
@@ -23,11 +20,13 @@ func NewMonster(cfg *Config) *Monster {
 
 	width, height := img.Size()
 	return &Monster{
-		image:       img,
-		width:       width,
-		height:      height,
-		x:           0,
-		y:           0,
+		image: img,
+		GameObject: GameObject{
+			width:  width,
+			height: height,
+			x:      0,
+			y:      0,
+		},
 		speedFactor: cfg.MonsterSpeedFactor,
 	}
 }

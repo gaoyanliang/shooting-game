@@ -6,12 +6,8 @@ import (
 )
 
 type Bullet struct {
-	image  *ebiten.Image
-	width  int // 子弹宽度
-	height int // 子弹高度
-	// 子弹坐标
-	x float64
-	y float64
+	GameObject
+	image *ebiten.Image
 
 	// 子弹移动系数
 	speedFactor float64
@@ -23,12 +19,14 @@ func NewBullet(cfg *Config, ship *Ship) *Bullet {
 	img.Fill(cfg.BulletColor)
 
 	return &Bullet{
-		image:  img,
-		width:  cfg.BulletWidth,
-		height: cfg.BulletHeight,
-		// 子弹从飞船头部中间射出
-		x:           ship.x + float64(ship.width-cfg.BulletWidth)/2,
-		y:           float64(cfg.ScreenHeight - ship.height - cfg.BulletHeight),
+		image: img,
+		GameObject: GameObject{
+			width:  cfg.BulletWidth,
+			height: cfg.BulletHeight,
+			// 子弹从飞船头部中间射出
+			x: ship.x + float64(ship.width-cfg.BulletWidth)/2,
+			y: float64(cfg.ScreenHeight - ship.height - cfg.BulletHeight),
+		},
 		speedFactor: cfg.BulletSpeedFactor,
 	}
 }

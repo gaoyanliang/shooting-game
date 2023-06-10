@@ -8,11 +8,8 @@ import (
 )
 
 type Ship struct {
+	GameObject
 	image          *ebiten.Image
-	width          int     // 飞船宽度
-	height         int     // 飞船高度
-	x              float64 // x 坐标
-	y              float64 // y 坐标
 	lastBulletTime time.Time
 }
 
@@ -24,11 +21,13 @@ func NewShip(screenWidth, screenHeight int) *Ship {
 
 	width, height := img.Size()
 	ship := &Ship{
-		image:  img,
-		width:  width,
-		height: height,
-		x:      float64(screenWidth-width) / 2,
-		y:      float64(screenHeight - height),
+		image: img,
+		GameObject: GameObject{
+			width:  width,
+			height: height,
+			x:      float64(screenWidth-width) / 2,
+			y:      float64(screenHeight - height),
+		},
 	}
 
 	return ship

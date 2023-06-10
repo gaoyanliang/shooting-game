@@ -4,6 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"image/color"
+	"log"
 	"time"
 )
 
@@ -16,16 +17,20 @@ const (
 )
 
 type Game struct {
-	mode     Mode
-	ship     *Ship                 // 飞船
-	bullets  map[*Bullet]struct{}  // 子弹
-	monsters map[*Monster]struct{} // 怪物 👹
-	cfg      *Config
+	mode      Mode
+	ship      *Ship                 // 飞船
+	bullets   map[*Bullet]struct{}  // 子弹
+	monsters  map[*Monster]struct{} // 怪物 👹
+	cfg       *Config
+	failCount int // 被外星人碰撞和移出屏幕的外星人数量之和
+	overMsg   string
 }
 
 func (g *Game) init() {
 	g.CreateMonsters()
 	g.CreateFonts()
+	g.failCount = 0
+	g.overMsg = ""
 }
 
 func NewGame() *Game {
@@ -67,31 +72,33 @@ func (g *Game) addMonster(monster *Monster) {
 	g.monsters[monster] = struct{}{}
 }
 
-// CheckCollision 检查子弹和外星人之间是否有碰撞
-func CheckCollision(bullet *Bullet, monster *Monster) bool {
-	monsterTop, monsterLeft := monster.y, monster.x
-	monsterBottom, monsterRight := monster.y+float64(monster.height), monster.x+float64(monster.width)
+// CheckCollision 检查两个物体之间是否有碰撞
+func CheckCollision(entity1, entity2 Entity) bool {
+	// ps: 这里判断时需要注意两个实体的大小，小的在前，大的在后
+	// ps：判断逻辑是以大实体框定范围，判断小实体是否在这个范围内。（子弹可以在怪物体内，但是怪物不一定在子弹体内）
+	top, left := entity1.Y(), entity1.X()
+	bottom, right := entity1.Y()+float64(entity1.Height()), entity1.X()+float64(entity1.Width())
 	// 左上角
-	x, y := bullet.x, bullet.y
-	if y > monsterTop && y < monsterBottom && x > monsterLeft && x < monsterRight {
+	x, y := entity2.X(), entity2.Y()
+	if y > top && y < bottom && x > left && x < right {
 		return true
 	}
 
 	// 右上角
-	x, y = bullet.x+float64(bullet.width), bullet.y
-	if y > monsterTop && y < monsterBottom && x > monsterLeft && x < monsterRight {
+	x, y = entity2.X()+float64(entity2.Width()), entity2.Y()
+	if y > top && y < bottom && x > left && x < right {
 		return true
 	}
 
 	// 左下角
-	x, y = bullet.x, bullet.y+float64(bullet.height)
-	if y > monsterTop && y < monsterBottom && x > monsterLeft && x < monsterRight {
+	x, y = entity2.X(), entity2.Y()+float64(entity2.Height())
+	if y > top && y < bottom && x > left && x < right {
 		return true
 	}
 
 	// 右下角
-	x, y = bullet.x+float64(bullet.width), bullet.y+float64(bullet.height)
-	if y > monsterTop && y < monsterBottom && x > monsterLeft && x < monsterRight {
+	x, y = entity2.X()+float64(entity2.Width()), entity2.Y()+float64(entity2.Height())
+	if y > top && y < bottom && x > left && x < right {
 		return true
 	}
 
@@ -101,7 +108,8 @@ func CheckCollision(bullet *Bullet, monster *Monster) bool {
 func (g *Game) CheckCollision() {
 	for monster := range g.monsters {
 		for bullet := range g.bullets {
-			if CheckCollision(bullet, monster) {
+			if CheckCollision(monster, bullet) {
+				log.Print("---- 子弹击中怪物 ----")
 				delete(g.monsters, monster)
 				delete(g.bullets, bullet)
 			}
@@ -153,6 +161,34 @@ func (g *Game) Update() error {
 				delete(g.bullets, bullet)
 			}
 		}
+
+		for monster := range g.monsters {
+			if monster.outOfScreen(g.cfg) {
+				g.failCount++
+				delete(g.monsters, monster)
+				continue
+			}
+
+			if CheckCollision(g.ship, monster) {
+				log.Print("---- 飞船碰撞怪物 ----")
+				g.failCount++
+				delete(g.monsters, monster)
+				continue
+			}
+		}
+
+		if g.failCount >= g.cfg.FailCount {
+			g.overMsg = "Game Over!"
+		} else if len(g.monsters) == 0 {
+			g.overMsg = "You Win!"
+		}
+
+		if len(g.overMsg) > 0 {
+			g.mode = ModeOver
+			g.monsters = make(map[*Monster]struct{})
+			g.bullets = make(map[*Bullet]struct{})
+		}
+
 	case ModeOver:
 		if ebiten.IsKeyPressed(ebiten.KeySpace) || ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 			g.init()
@@ -182,7 +218,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			monter.Draw(screen)
 		}
 	case ModeOver:
-		texts = []string{"", "GAME OVER!"}
+		texts = []string{"", g.overMsg}
 	}
 
 	for i, l := range titleTexts {
